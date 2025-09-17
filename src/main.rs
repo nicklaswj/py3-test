@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    env, fs,
     io::{self, Read, Write},
     process,
 };
@@ -15,14 +15,18 @@ const TEST_DOC: &[u8] = include_bytes!("../test.pdf");
 const TEST_DOC_OUTPUT: &str = "test_out.pdf";
 
 pub fn init_python_env() {
-    if !fs::exists(PYTHON_DEPS_EXTACTED_DIR).unwrap() {
-        fs::create_dir(PYTHON_DEPS_EXTACTED_DIR).unwrap()
+    let mut temp_dir = env::temp_dir();
+    temp_dir.push(PYTHON_DEPS_EXTACTED_DIR);
+
+    fs::create_dir(&temp_dir).unwrap();
+    if !fs::exists(&temp_dir).unwrap() {
+        fs::create_dir(&temp_dir).unwrap()
     }
 
     // Extract the python dependencies
     let zip_file = io::Cursor::new(PYTHON_DEP_ZIP_FILE);
     let mut zip_archive = ZipArchive::new(zip_file).unwrap();
-    zip_archive.extract(&PYTHON_DEPS_EXTACTED_DIR).unwrap();
+    zip_archive.extract(&temp_dir).unwrap();
 }
 
 // fn main() -> Result<(), Error> {
