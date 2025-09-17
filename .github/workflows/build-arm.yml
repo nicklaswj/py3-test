@@ -12,9 +12,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5.0.0
+      - name: Install Zig
+        run: npm install -g @ziglang/cli
       - name: Install rust stable
         uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-make from crates.io
+      - name: Install cargo-lambda from crates.io
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-lambda
