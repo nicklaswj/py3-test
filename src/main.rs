@@ -1,4 +1,5 @@
 use std::{
+    cell::OnceCell,
     env, fs,
     io::{self, Read, Write},
     process,
@@ -10,7 +11,8 @@ use zip::ZipArchive;
 
 const PYTHON_DEP_ZIP_FILE: &[u8] = include_bytes!("../py-deps.zip");
 const PYTHON_DEPS_EXTACTED_DIR: &str = "pyhanko-deps";
-const TEST_SCRIPT: &str = include_str!("../test.py");
+const TEST_SCRIPT_SRC: &str = include_str!("../test.py");
+const TEST_SCRIPT: OnceCell<String> = OnceCell::new();
 const TEST_DOC: &[u8] = include_bytes!("../test.pdf");
 const TEST_DOC_OUTPUT: &str = "test_out.pdf";
 
@@ -18,10 +20,16 @@ pub fn init_python_env() {
     let mut temp_dir = env::temp_dir();
     temp_dir.push(PYTHON_DEPS_EXTACTED_DIR);
 
-    fs::create_dir(&temp_dir).unwrap();
     if !fs::exists(&temp_dir).unwrap() {
         fs::create_dir(&temp_dir).unwrap()
     }
+
+    TEST_SCRIPT.get_or_init(|| {
+        TEST_SCRIPT_SRC.replace(
+            "PY-HANKO-DEP-PATH",
+            temp_dir.to_str().expect("path is invalid utf8"),
+        )
+    });
 
     // Extract the python dependencies
     let zip_file = io::Cursor::new(PYTHON_DEP_ZIP_FILE);
@@ -64,7 +72,7 @@ fn do_stuff() -> Vec<u8> {
     init_python_env();
 
     let child = process::Command::new("python3")
-        .args(&["-c", TEST_SCRIPT])
+        .args(&["-c", TEST_SCRIPT.get().unwrap()])
         .stdin(process::Stdio::piped())
         .stdout(process::Stdio::piped())
         .spawn()
