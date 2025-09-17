@@ -1,6 +1,8 @@
 use std::{fs, io};
 
+use lambda_runtime::{Error, LambdaEvent, service_fn};
 use pyo3::Python;
+use serde_json::{Value, json};
 use zip::ZipArchive;
 
 const PYTHON_DEP_ZIP_FILE: &[u8] = include_bytes!("../py-deps.zip");
@@ -18,7 +20,7 @@ pub fn init_python_env() {
     }
 
     // Extract the python dependencies
-    let mut zip_file = io::Cursor::new(PYTHON_DEP_ZIP_FILE);
+    let zip_file = io::Cursor::new(PYTHON_DEP_ZIP_FILE);
     let mut zip_archive = ZipArchive::new(zip_file).unwrap();
     zip_archive.extract(&PYTHON_DEPS_EXTACTED_DIR).unwrap();
 
@@ -26,11 +28,19 @@ pub fn init_python_env() {
     // unsafe { env::set_var("PYTHONPATH", temp_dir) };
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Error> {
     init_python_env();
 
-    Python::initialize();
-    Python::attach(|py| py.run(&std::ffi::CString::new(TEST_SCRIPT).unwrap(), None, None)).unwrap();
+    let func = service_fn(func);
+    lambda_runtime::run(func).await?;
+    Ok(())
+}
 
-    eprint!("Nothing wrong happened")
+async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
+    let result =
+        Python::attach(|py| py.run(&std::ffi::CString::new(TEST_SCRIPT).unwrap(), None, None));
+
+    eprint!("Nothing wrong happened");
+    Ok(json!({ "message": format!("Result: {result:#?}") }))
 }
