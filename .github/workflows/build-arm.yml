@@ -1,0 +1,21 @@
+name: Build-arm
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-arm:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - name: Install rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-make from crates.io
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-lambda
+      - run: cargo lambda build
