@@ -25,7 +25,7 @@ fn main() {
             PY_DEPS_PATH,
             "--upgrade",
             "--platform",
-            "manylinux2014_aarch64",
+            "manylinux2014_x86_64",
             "--only-binary=:all:",
         ])
         .spawn()
