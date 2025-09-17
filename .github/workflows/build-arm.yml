@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - run: apt update && apt upgrade -y && apt install python3.9
+      - run: sudo apt install -y python3.9
       - uses: actions/checkout@v5.0.0
       - name: Install Zig
         run: npm install -g @ziglang/cli
