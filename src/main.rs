@@ -31,10 +31,12 @@ pub fn init_python_env() {
         )
     });
 
+    eprint!("Extracting python deps...");
     // Extract the python dependencies
     let zip_file = io::Cursor::new(PYTHON_DEP_ZIP_FILE);
     let mut zip_archive = ZipArchive::new(zip_file).unwrap();
     zip_archive.extract(&temp_dir).unwrap();
+    eprint!("Done extracting python deps");
 }
 
 // fn main() -> Result<(), Error> {
@@ -71,6 +73,7 @@ pub fn init_python_env() {
 fn do_stuff() -> Vec<u8> {
     init_python_env();
 
+    eprint!("Calling python...");
     let child = process::Command::new("python3")
         .args(&["-c", TEST_SCRIPT.get().unwrap()])
         .stdin(process::Stdio::piped())
@@ -78,10 +81,12 @@ fn do_stuff() -> Vec<u8> {
         .spawn()
         .unwrap();
 
+    eprint!("Piping document to python");
     let mut child_in = child.stdin.unwrap();
     child_in.write_all(TEST_DOC).unwrap();
     drop(child_in);
 
+    eprint!("Reading signed document");
     let mut child_out = child.stdout.unwrap();
     let mut out_buf = Vec::new();
     child_out.read_to_end(&mut out_buf).unwrap();
@@ -100,6 +105,8 @@ async fn main() -> Result<(), Error> {
 
 async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
     let out = do_stuff();
+
+    eprint!("Encoding signed document to base64");
     let pdf = base64::encode(out);
 
     eprint!("Nothing wrong happened");
