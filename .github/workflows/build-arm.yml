@@ -2,7 +2,6 @@ name: Build-arm
 
 env:
   CARGO_TERM_COLOR: always
-  PYO3_CONFIG_FILE: ./pyo3.config
 
 on:
   workflow_dispatch:
@@ -22,7 +21,9 @@ jobs:
         with:
           crate: cargo-lambda
       - uses: Swatinem/rust-cache@v2
-      - run: cargo lambda build
+      - run: |
+          export PYO3_CONFIG_FILE=$PWD/pyo3.config
+          cargo lambda build
       - uses: actions/upload-artifact@v4
         with:
           path: ./target/lambda
